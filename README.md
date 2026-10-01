@@ -8,6 +8,8 @@ Run `cargo run -- --data data/sample-metrics.json --top 5`.
 `--top` defaults to 5; 0 prints the header, and larger limits print all available rows.
 Input is a JSON array of `{"name":"example","value":12.5}`; the sample contains eight fake rows.
 Values sort descending; equal values retain their input order.
+Use `--name-prefix fake-e --top 1` to filter names before ranking; matching is case-sensitive.
+An unmatched prefix prints only the table header.
 ADR: Rust was chosen over Python for a standalone binary and a typed data model.
 Supplied planning note: Python option was rejected in planning (2025-06-12).
 `cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked` run on every push.

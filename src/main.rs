@@ -13,12 +13,19 @@ struct Args {
     /// Maximum number of ranked metrics to print.
     #[arg(long, default_value_t = 5)]
     top: usize,
+
+    /// Keep only metrics whose names start with this case-sensitive prefix.
+    #[arg(long)]
+    name_prefix: Option<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let input = fs::read_to_string(&args.data)?;
     let mut metrics = parser::parse_metrics(&input)?;
+    if let Some(prefix) = &args.name_prefix {
+        metrics.retain(|metric| metric.name.starts_with(prefix));
+    }
     metrics.sort_by(|left, right| right.value.total_cmp(&left.value));
 
     let count = args.top.min(metrics.len());
