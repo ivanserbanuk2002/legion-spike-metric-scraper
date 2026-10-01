@@ -1,0 +1,10 @@
+[
+  {"name": "fake-alpha", "value": 18.5},
+  {"name": "fake-beta", "value": 42.0},
+  {"name": "fake-gamma", "value": 7.25},
+  {"name": "fake-delta", "value": 64.5},
+  {"name": "fake-epsilon", "value": 31.75},
+  {"name": "fake-zeta", "value": 55.0},
+  {"name": "fake-eta", "value": 12.0},
+  {"name": "fake-theta", "value": 88.25}
+]
