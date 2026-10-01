@@ -44,3 +44,33 @@ fn minimum_rejects_non_finite_or_invalid_numbers() {
         assert!(output.stdout.is_empty());
     }
 }
+
+#[test]
+fn json_output_has_filtered_ranked_records_and_empty_array() {
+    let output = run(&[
+        "--format",
+        "json",
+        "--name-prefix",
+        "fake-e",
+        "--min-value",
+        "-1",
+        "--top",
+        "1",
+    ]);
+    assert!(output.status.success());
+    let rows: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(
+        rows,
+        serde_json::json!([
+            {"rank": 1, "name": "fake-epsilon", "value": 31.75}
+        ])
+    );
+
+    let empty = run(&["--format", "json", "--top", "0"]);
+    assert!(empty.status.success());
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&empty.stdout).unwrap(),
+        serde_json::json!([])
+    );
+    assert_eq!(run(&["--format", "xml"]).status.code(), Some(2));
+}

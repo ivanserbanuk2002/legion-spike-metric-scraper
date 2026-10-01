@@ -12,6 +12,8 @@ Use `--name-prefix fake-e --top 1` to filter names before ranking; matching is c
 An unmatched prefix prints only the table header.
 `--min-value 12` keeps values >= 12; combine it with the prefix filter before applying `--top`.
 The threshold accepts negative numbers but rejects NaN and infinity; JSON metric values must also be finite.
+`--format json` prints an array of `{ "rank": 1, "name": "fake-theta", "value": 88.25 }` records.
+Ranks start at 1 after filtering and sorting; an empty result is `[]`. The default format is `table`.
 ADR: Rust was chosen over Python for a standalone binary and a typed data model.
 Supplied planning note: Python option was rejected in planning (2025-06-12).
 `cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked` run on every push.
