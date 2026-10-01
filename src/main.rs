@@ -31,8 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .max(4);
 
     println!("{:>4}  {:name_width$}  {:>12}", "RANK", "NAME", "VALUE");
-    for index in 0..count {
-        let metric = &metrics[index];
+    for (index, metric) in metrics.iter().take(count).enumerate() {
         println!(
             "{:>4}  {:name_width$}  {:>12}",
             index + 1,
