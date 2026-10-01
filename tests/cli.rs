@@ -1,4 +1,8 @@
 use std::process::{Command, Output};
+use std::{
+    fs,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 fn run(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_legion-spike-metric-scraper"))
@@ -73,4 +77,31 @@ fn json_output_has_filtered_ranked_records_and_empty_array() {
         serde_json::json!([])
     );
     assert_eq!(run(&["--format", "xml"]).status.code(), Some(2));
+}
+
+#[test]
+fn output_file_contains_result_without_stdout_or_overwriting_existing_file() {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    for format in ["json", "table"] {
+        let path = std::env::temp_dir().join(format!(
+            "legion-metrics-{}-{nonce}-{format}",
+            std::process::id()
+        ));
+        let filename = path.to_str().unwrap();
+        let args = ["--format", format, "--top", "2"];
+        let expected = run(&args);
+        assert!(expected.status.success());
+        let written = run(&["--format", format, "--top", "2", "--output", filename]);
+        assert!(written.status.success(), "{:?}", written);
+        assert!(written.stdout.is_empty());
+        assert_eq!(fs::read(&path).unwrap(), expected.stdout);
+
+        let refused = run(&["--output", filename]);
+        assert!(!refused.status.success());
+        assert_eq!(fs::read(&path).unwrap(), expected.stdout);
+        fs::remove_file(path).unwrap();
+    }
 }

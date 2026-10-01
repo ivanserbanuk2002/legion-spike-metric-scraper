@@ -18,5 +18,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     metrics.sort_by(|left, right| right.value.total_cmp(&left.value));
 
     metrics.truncate(args.top);
-    output::render(&metrics, args.format, io::stdout().lock())
+    match args.output {
+        Some(path) => {
+            let file = fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(path)?;
+            output::render(&metrics, args.format, file)
+        }
+        None => output::render(&metrics, args.format, io::stdout().lock()),
+    }
 }

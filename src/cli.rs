@@ -24,6 +24,10 @@ pub struct Args {
     /// Render a readable table or a JSON array of ranked records.
     #[arg(long, value_enum, default_value = "table")]
     pub format: Format,
+
+    /// Write to a new file instead of stdout; existing files are never replaced.
+    #[arg(long)]
+    pub output: Option<PathBuf>,
 }
 
 fn finite_value(value: &str) -> Result<f64, String> {

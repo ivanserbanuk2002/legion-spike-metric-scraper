@@ -14,6 +14,13 @@ An unmatched prefix prints only the table header.
 The threshold accepts negative numbers but rejects NaN and infinity; JSON metric values must also be finite.
 `--format json` prints an array of `{ "rank": 1, "name": "fake-theta", "value": 88.25 }` records.
 Ranks start at 1 after filtering and sorting; an empty result is `[]`. The default format is `table`.
+`--output summary.json --format json` writes to a new file and leaves stdout empty.
+Existing files are never replaced. Missing parent directories and write failures return a nonzero exit code;
+a write failure may leave a partial new file. Input parsing happens before the destination is created.
 ADR: Rust was chosen over Python for a standalone binary and a typed data model.
 Supplied planning note: Python option was rejected in planning (2025-06-12).
 `cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked` run on every push.
+
+Design reference: Mikko Ohtamaa's [finite-value JSON export fix](https://github.com/tradingstrategy-ai/web3-ethereum-defi/commit/382dbe6623bc79a6ed350139d3750ef75c09eb0b).
+That export maps invalid optional metadata to null; this CLI rejects non-finite required numbers.
+Filtering, ranked JSON and file output are our own additions; no upstream code was copied.
