@@ -17,6 +17,19 @@ struct Args {
     /// Keep only metrics whose names start with this case-sensitive prefix.
     #[arg(long)]
     name_prefix: Option<String>,
+
+    /// Keep values greater than or equal to this finite threshold.
+    #[arg(long, value_parser = finite_value, allow_hyphen_values = true)]
+    min_value: Option<f64>,
+}
+
+fn finite_value(value: &str) -> Result<f64, String> {
+    let value: f64 = value.parse().map_err(|_| "expected a finite number")?;
+    if value.is_finite() {
+        Ok(value)
+    } else {
+        Err("expected a finite number".into())
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -25,6 +38,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut metrics = parser::parse_metrics(&input)?;
     if let Some(prefix) = &args.name_prefix {
         metrics.retain(|metric| metric.name.starts_with(prefix));
+    }
+    if let Some(minimum) = args.min_value {
+        metrics.retain(|metric| metric.value >= minimum);
     }
     metrics.sort_by(|left, right| right.value.total_cmp(&left.value));
 

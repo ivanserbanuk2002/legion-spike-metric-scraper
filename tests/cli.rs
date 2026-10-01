@@ -21,3 +21,26 @@ fn name_prefix_filters_before_top_limit() {
     assert!(empty.status.success());
     assert_eq!(String::from_utf8(empty.stdout).unwrap().lines().count(), 1);
 }
+
+#[test]
+fn minimum_is_inclusive_and_combines_with_prefix() {
+    let output = run(&["--name-prefix", "fake-e", "--min-value", "12", "--top", "8"]);
+    assert!(output.status.success());
+    let table = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(table.lines().count(), 3);
+    assert!(table.contains("fake-epsilon"));
+    assert!(table.contains("fake-eta"));
+
+    let none = run(&["--min-value", "100"]);
+    assert!(none.status.success());
+    assert_eq!(String::from_utf8(none.stdout).unwrap().lines().count(), 1);
+}
+
+#[test]
+fn minimum_rejects_non_finite_or_invalid_numbers() {
+    for value in ["NaN", "inf", "-inf", "word"] {
+        let output = run(&["--min-value", value]);
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+    }
+}
