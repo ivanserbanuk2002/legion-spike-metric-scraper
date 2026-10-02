@@ -156,3 +156,73 @@ fn csv_output_contains_header_and_ranked_rows() {
         "rank,name,value\n"
     );
 }
+
+#[test]
+fn maximum_is_inclusive_and_combines_with_other_filters_before_ranking() {
+    let output = run(&["--max-value", "12", "--format", "json"]);
+    assert!(output.status.success(), "{:?}", output);
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&output.stdout).unwrap(),
+        serde_json::json!([
+            {"rank": 1, "name": "fake-eta", "value": 12.0},
+            {"rank": 2, "name": "fake-gamma", "value": 7.25}
+        ])
+    );
+    let combined = run(&[
+        "--name-prefix",
+        "fake-e",
+        "--name-contains",
+        "eta",
+        "--min-value",
+        "12",
+        "--max-value",
+        "12",
+        "--top",
+        "1",
+        "--format",
+        "json",
+    ]);
+    assert!(combined.status.success(), "{:?}", combined);
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&combined.stdout).unwrap(),
+        serde_json::json!([{"rank": 1, "name": "fake-eta", "value": 12.0}])
+    );
+    let empty = run(&["--max-value", "-1", "--format", "json"]);
+    assert!(empty.status.success());
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&empty.stdout).unwrap(),
+        serde_json::json!([])
+    );
+}
+
+#[test]
+fn maximum_rejects_non_finite_or_invalid_numbers() {
+    for value in ["NaN", "inf", "-inf", "1e400", "word"] {
+        let output = run(&["--max-value", value]);
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+        assert!(String::from_utf8(output.stderr)
+            .unwrap()
+            .contains("finite number"));
+    }
+}
+
+#[test]
+fn reversed_value_bounds_fail_before_reading_input() {
+    let output = Command::new(env!("CARGO_BIN_EXE_legion-spike-metric-scraper"))
+        .args([
+            "--data",
+            "missing-input.json",
+            "--min-value",
+            "2",
+            "--max-value",
+            "1",
+        ])
+        .output()
+        .expect("CLI executes");
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    assert!(String::from_utf8(output.stderr)
+        .unwrap()
+        .contains("must not exceed"));
+}

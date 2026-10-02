@@ -7,6 +7,17 @@ use std::{error::Error, fs, io};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = cli::Args::parse();
+    if args
+        .min_value
+        .zip(args.max_value)
+        .is_some_and(|(min, max)| min > max)
+    {
+        clap::Error::raw(
+            clap::error::ErrorKind::InvalidValue,
+            "--min-value must not exceed --max-value",
+        )
+        .exit();
+    }
     let input = fs::read_to_string(&args.data)?;
     let mut metrics = parser::parse_metrics(&input)?;
     if let Some(prefix) = &args.name_prefix {
@@ -17,6 +28,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if let Some(minimum) = args.min_value {
         metrics.retain(|metric| metric.value >= minimum);
+    }
+    if let Some(maximum) = args.max_value {
+        metrics.retain(|metric| metric.value <= maximum);
     }
     metrics.sort_by(|left, right| {
         if args.reverse {

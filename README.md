@@ -11,7 +11,10 @@ Values sort descending; equal values retain their input order.
 Use `--name-prefix fake-e --top 1` to filter names before ranking; matching is case-sensitive.
 An unmatched prefix prints only the table header.
 `--min-value 12` keeps values >= 12; combine it with the prefix filter before applying `--top`.
-The threshold accepts negative numbers but rejects NaN and infinity; JSON metric values must also be finite.
+`--max-value 32` keeps values <= 32, including the threshold itself.
+Use `--min-value 12 --max-value 32 --name-prefix fake-e --top 2` to rank only the matching range.
+Both thresholds accept negative numbers but reject NaN and infinity; JSON metric values must also be finite.
+Reversed bounds (`--min-value 32 --max-value 12`) exit with code 2 before reading input or creating output.
 `--format json` prints an array of `{ "rank": 1, "name": "fake-theta", "value": 88.25 }` records.
 Ranks start at 1 after filtering and sorting; an empty result is `[]`. The default format is `table`.
 `--output summary.json --format json` writes to a new file and leaves stdout empty.

@@ -25,6 +25,10 @@ pub struct Args {
     #[arg(long, value_parser = finite_value, allow_hyphen_values = true)]
     pub min_value: Option<f64>,
 
+    /// Keep values less than or equal to this finite threshold.
+    #[arg(long, value_parser = finite_value, allow_hyphen_values = true)]
+    pub max_value: Option<f64>,
+
     /// Rank smallest values first instead of largest.
     #[arg(long)]
     pub reverse: bool,
