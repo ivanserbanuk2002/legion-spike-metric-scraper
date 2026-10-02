@@ -15,6 +15,11 @@ An unmatched prefix prints only the table header.
 Use `--min-value 12 --max-value 32 --name-prefix fake-e --top 2` to rank only the matching range.
 Both thresholds accept negative numbers but reject NaN and infinity; JSON metric values must also be finite.
 Reversed bounds (`--min-value 32 --max-value 12`) exit with code 2 before reading input or creating output.
+`--dedupe` keeps the first qualifying input row for each exact, case-sensitive name.
+It runs after all name/value filters and before stable sorting and `--top`, so a filtered-out
+row does not reserve its name and a later duplicate with a larger value does not replace the first.
+For example, `--name-prefix fake- --min-value 12 --max-value 64.5 --dedupe --top 3 --format json`
+filters the input, keeps unique names, then ranks the first three. Without `--dedupe`, duplicates remain.
 `--format json` prints an array of `{ "rank": 1, "name": "fake-theta", "value": 88.25 }` records.
 Ranks start at 1 after filtering and sorting; an empty result is `[]`. The default format is `table`.
 `--output summary.json --format json` writes to a new file and leaves stdout empty.

@@ -3,7 +3,7 @@ mod output;
 mod parser;
 
 use clap::Parser;
-use std::{error::Error, fs, io};
+use std::{collections::HashSet, error::Error, fs, io};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = cli::Args::parse();
@@ -31,6 +31,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if let Some(maximum) = args.max_value {
         metrics.retain(|metric| metric.value <= maximum);
+    }
+    if args.dedupe {
+        let mut names = HashSet::new();
+        metrics.retain(|metric| names.insert(metric.name.clone()));
     }
     metrics.sort_by(|left, right| {
         if args.reverse {

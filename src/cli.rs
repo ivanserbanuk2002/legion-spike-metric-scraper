@@ -29,6 +29,10 @@ pub struct Args {
     #[arg(long, value_parser = finite_value, allow_hyphen_values = true)]
     pub max_value: Option<f64>,
 
+    /// Keep the first qualifying metric for each exact name before ranking.
+    #[arg(long)]
+    pub dedupe: bool,
+
     /// Rank smallest values first instead of largest.
     #[arg(long)]
     pub reverse: bool,

@@ -12,6 +12,26 @@ fn run(args: &[&str]) -> Output {
         .expect("CLI executes")
 }
 
+fn run_input(input: &str, args: &[&str]) -> Output {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let path = std::env::temp_dir().join(format!(
+        "legion-metrics-input-{}-{nonce}.json",
+        std::process::id()
+    ));
+    fs::write(&path, input).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_legion-spike-metric-scraper"))
+        .arg("--data")
+        .arg(&path)
+        .args(args)
+        .output()
+        .expect("CLI executes");
+    fs::remove_file(path).unwrap();
+    output
+}
+
 #[test]
 fn name_prefix_filters_before_top_limit() {
     let output = run(&["--name-prefix", "fake-e", "--top", "1"]);
@@ -225,4 +245,75 @@ fn reversed_value_bounds_fail_before_reading_input() {
     assert!(String::from_utf8(output.stderr)
         .unwrap()
         .contains("must not exceed"));
+}
+
+#[test]
+fn dedupe_keeps_first_qualifying_exact_name_before_stable_sort_and_top() {
+    let input = r#"[
+        {"name":"other-load","value":8}, {"name":"svc-other","value":9},
+        {"name":"svc-load-a","value":1}, {"name":"svc-load-a","value":20},
+        {"name":"svc-load-a","value":4}, {"name":"svc-load-a","value":9},
+        {"name":"svc-load-b","value":5}, {"name":"svc-load-b","value":2},
+        {"name":"svc-load-c","value":4}, {"name":"svc-load-A","value":4}
+    ]"#;
+    let filters = [
+        "--name-prefix",
+        "svc-",
+        "--name-contains",
+        "load",
+        "--min-value",
+        "2",
+        "--max-value",
+        "10",
+        "--top",
+        "3",
+        "--format",
+        "json",
+    ];
+    let mut args = filters.to_vec();
+    args.push("--dedupe");
+    let output = run_input(input, &args);
+    assert!(output.status.success(), "{:?}", output);
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&output.stdout).unwrap(),
+        serde_json::json!([
+            {"rank": 1, "name": "svc-load-b", "value": 5.0},
+            {"rank": 2, "name": "svc-load-a", "value": 4.0},
+            {"rank": 3, "name": "svc-load-c", "value": 4.0}
+        ])
+    );
+    args.push("--reverse");
+    let reversed = run_input(input, &args);
+    assert!(reversed.status.success());
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&reversed.stdout).unwrap(),
+        serde_json::json!([
+            {"rank": 1, "name": "svc-load-a", "value": 4.0},
+            {"rank": 2, "name": "svc-load-c", "value": 4.0},
+            {"rank": 3, "name": "svc-load-A", "value": 4.0}
+        ])
+    );
+    let unchanged = run_input(input, &filters);
+    assert!(unchanged.status.success());
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&unchanged.stdout).unwrap(),
+        serde_json::json!([
+            {"rank": 1, "name": "svc-load-a", "value": 9.0},
+            {"rank": 2, "name": "svc-load-b", "value": 5.0},
+            {"rank": 3, "name": "svc-load-a", "value": 4.0}
+        ])
+    );
+}
+
+#[test]
+fn dedupe_handles_empty_filtered_results() {
+    let output = run(&["--dedupe", "--min-value", "100", "--format", "json"]);
+    assert!(output.status.success(), "{:?}", output);
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&output.stdout).unwrap(),
+        serde_json::json!([])
+    );
+    let csv = run(&["--dedupe", "--min-value", "100", "--format", "csv"]);
+    assert!(csv.status.success());
+    assert_eq!(String::from_utf8(csv.stdout).unwrap(), "rank,name,value\n");
 }
