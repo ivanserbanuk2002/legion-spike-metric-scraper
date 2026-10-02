@@ -18,7 +18,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(minimum) = args.min_value {
         metrics.retain(|metric| metric.value >= minimum);
     }
-    metrics.sort_by(|left, right| right.value.total_cmp(&left.value));
+    metrics.sort_by(|left, right| {
+        if args.reverse {
+            left.value.total_cmp(&right.value)
+        } else {
+            right.value.total_cmp(&left.value)
+        }
+    });
 
     metrics.truncate(args.top);
     match args.output {

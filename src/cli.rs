@@ -25,6 +25,10 @@ pub struct Args {
     #[arg(long, value_parser = finite_value, allow_hyphen_values = true)]
     pub min_value: Option<f64>,
 
+    /// Rank smallest values first instead of largest.
+    #[arg(long)]
+    pub reverse: bool,
+
     /// Render a readable table or a JSON array of ranked records.
     #[arg(long, value_enum, default_value = "table")]
     pub format: Format,

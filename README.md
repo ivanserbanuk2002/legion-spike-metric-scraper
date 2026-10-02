@@ -27,3 +27,6 @@ Filtering, ranked JSON and file output are our own additions; no upstream code w
 
 `--name-contains eta` filters by a case-sensitive substring. It combines with
 `--name-prefix` and `--min-value` before sorting and applying the top limit.
+
+`--reverse --top 3` ranks the three smallest values first. Equal values keep
+input order in either direction, and output ranks still start at 1.

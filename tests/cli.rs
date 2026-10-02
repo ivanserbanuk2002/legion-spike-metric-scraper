@@ -130,3 +130,13 @@ fn substring_filter_combines_with_prefix_and_top() {
         serde_json::json!([])
     );
 }
+
+#[test]
+fn reverse_sorts_ascending_before_applying_top() {
+    let output = run(&["--reverse", "--top", "2", "--format", "json"]);
+    assert!(output.status.success());
+    let rows: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(rows[0]["name"], "fake-gamma");
+    assert_eq!(rows[0]["rank"], 1);
+    assert_eq!(rows[1]["name"], "fake-eta");
+}
