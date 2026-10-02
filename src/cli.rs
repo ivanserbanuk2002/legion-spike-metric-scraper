@@ -17,6 +17,10 @@ pub struct Args {
     #[arg(long)]
     pub name_prefix: Option<String>,
 
+    /// Keep names containing this case-sensitive substring.
+    #[arg(long)]
+    pub name_contains: Option<String>,
+
     /// Keep values greater than or equal to this finite threshold.
     #[arg(long, value_parser = finite_value, allow_hyphen_values = true)]
     pub min_value: Option<f64>,

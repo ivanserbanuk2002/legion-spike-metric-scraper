@@ -105,3 +105,28 @@ fn output_file_contains_result_without_stdout_or_overwriting_existing_file() {
         fs::remove_file(path).unwrap();
     }
 }
+
+#[test]
+fn substring_filter_combines_with_prefix_and_top() {
+    let output = run(&[
+        "--name-contains",
+        "eta",
+        "--name-prefix",
+        "fake-",
+        "--top",
+        "2",
+        "--format",
+        "json",
+    ]);
+    assert!(output.status.success());
+    let rows: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(rows[0]["name"], "fake-theta");
+    assert_eq!(rows[1]["name"], "fake-zeta");
+    assert_eq!(rows.as_array().unwrap().len(), 2);
+    let empty = run(&["--name-contains", "NO-MATCH", "--format", "json"]);
+    assert!(empty.status.success());
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&empty.stdout).unwrap(),
+        serde_json::json!([])
+    );
+}

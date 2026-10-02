@@ -24,3 +24,6 @@ Supplied planning note: Python option was rejected in planning (2025-06-12).
 Design reference: Mikko Ohtamaa's [finite-value JSON export fix](https://github.com/tradingstrategy-ai/web3-ethereum-defi/commit/382dbe6623bc79a6ed350139d3750ef75c09eb0b).
 That export maps invalid optional metadata to null; this CLI rejects non-finite required numbers.
 Filtering, ranked JSON and file output are our own additions; no upstream code was copied.
+
+`--name-contains eta` filters by a case-sensitive substring. It combines with
+`--name-prefix` and `--min-value` before sorting and applying the top limit.

@@ -12,6 +12,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(prefix) = &args.name_prefix {
         metrics.retain(|metric| metric.name.starts_with(prefix));
     }
+    if let Some(fragment) = &args.name_contains {
+        metrics.retain(|metric| metric.name.contains(fragment));
+    }
     if let Some(minimum) = args.min_value {
         metrics.retain(|metric| metric.value >= minimum);
     }
