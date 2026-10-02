@@ -7,6 +7,7 @@ use std::{error::Error, io::Write};
 pub enum Format {
     Table,
     Json,
+    Csv,
 }
 
 #[derive(Serialize)]
@@ -35,6 +36,13 @@ pub fn render(
             serde_json::to_writer_pretty(&mut writer, &rows)?;
             writeln!(writer)?;
         }
+        Format::Csv => {
+            writeln!(writer, "rank,name,value")?;
+            for (index, metric) in metrics.iter().enumerate() {
+                let name = metric.name.replace('"', "\"\"");
+                writeln!(writer, "{},\"{}\",{}", index + 1, name, metric.value)?;
+            }
+        }
         Format::Table => {
             let name_width = metrics
                 .iter()
@@ -60,4 +68,28 @@ pub fn render(
     }
     writer.flush()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{render, Format};
+    use crate::parser::Metric;
+
+    #[test]
+    fn csv_quotes_names_and_escapes_embedded_quotes() {
+        let mut output = Vec::new();
+        render(
+            &[Metric {
+                name: "a,\"b\"\nc".into(),
+                value: -2.5,
+            }],
+            Format::Csv,
+            &mut output,
+        )
+        .unwrap();
+        assert_eq!(
+            String::from_utf8(output).unwrap(),
+            "rank,name,value\n1,\"a,\"\"b\"\"\nc\",-2.5\n"
+        );
+    }
 }

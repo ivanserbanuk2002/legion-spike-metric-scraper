@@ -30,3 +30,7 @@ Filtering, ranked JSON and file output are our own additions; no upstream code w
 
 `--reverse --top 3` ranks the three smallest values first. Equal values keep
 input order in either direction, and output ranks still start at 1.
+
+`--format csv` exports `rank,name,value` with a header, quoted names and doubled
+embedded quotes. Empty results contain only the header. It works with `--output`.
+CSV preserves raw metric names and values rather than altering them for spreadsheets.

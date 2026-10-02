@@ -140,3 +140,19 @@ fn reverse_sorts_ascending_before_applying_top() {
     assert_eq!(rows[0]["rank"], 1);
     assert_eq!(rows[1]["name"], "fake-eta");
 }
+
+#[test]
+fn csv_output_contains_header_and_ranked_rows() {
+    let output = run(&["--format", "csv", "--top", "1"]);
+    assert!(output.status.success());
+    assert_eq!(
+        String::from_utf8(output.stdout).unwrap(),
+        "rank,name,value\n1,\"fake-theta\",88.25\n"
+    );
+    let empty = run(&["--format", "csv", "--top", "0"]);
+    assert!(empty.status.success());
+    assert_eq!(
+        String::from_utf8(empty.stdout).unwrap(),
+        "rank,name,value\n"
+    );
+}

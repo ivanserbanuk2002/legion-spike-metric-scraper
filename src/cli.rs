@@ -29,7 +29,7 @@ pub struct Args {
     #[arg(long)]
     pub reverse: bool,
 
-    /// Render a readable table or a JSON array of ranked records.
+    /// Render a readable table, ranked JSON records or CSV.
     #[arg(long, value_enum, default_value = "table")]
     pub format: Format,
 
